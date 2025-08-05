@@ -1,18 +1,24 @@
+"use client";
 
-"use client"
-
-import Image from "next/image"
-import { format } from "date-fns"
-import type { Project } from "../types"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import Image from "next/image";
+import { format, parseISO } from "date-fns";
+import type { Project } from "../types";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +28,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -30,28 +36,39 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import Link from "next/link"
-import { useState } from "react"
-import { MoreHorizontal, Edit3, Trash2, ExternalLink, Copy, Download, Eye } from "lucide-react"
-import { toast } from "sonner"
-
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
+import { useState } from "react";
+import {
+  MoreHorizontal,
+  Edit3,
+  Trash2,
+  ExternalLink,
+  Copy,
+  Download,
+  Eye,
+} from "lucide-react";
+import { toast } from "sonner";
+import { MarkedToggleButton } from "./marked-toggle";
 
 interface ProjectTableProps {
-  projects: Project[]
-  onUpdateProject?: (id: string, data: { title: string; description: string }) => Promise<void>
-  onDeleteProject?: (id: string) => Promise<void>
-  onDuplicateProject?: (id: string) => Promise<void>
-  onMarkasFavorite?: (id: string) => Promise<void>
+  projects: Project[];
+  onUpdateProject?: (
+    id: string,
+    data: { title: string; description: string }
+  ) => Promise<void>;
+  onDeleteProject?: (id: string) => Promise<void>;
+  onDuplicateProject?: (id: string) => Promise<void>;
+  onMarkasFavorite?: (id: string) => Promise<void>;
 }
 
 interface EditProjectData {
-  title: string
-  description: string
+  title: string;
+  description: string;
 }
 
 export default function ProjectTable({
@@ -61,40 +78,89 @@ export default function ProjectTable({
   onDuplicateProject,
   onMarkasFavorite,
 }: ProjectTableProps) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [editData, setEditData] = useState<EditProjectData>({ title: "", description: "" })
-  const [isLoading, setIsLoading] = useState(false)
-  const [favoutrie, setFavourite] = useState(false)
-  
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [editData, setEditData] = useState<EditProjectData>({
+    title: "",
+    description: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [favoutrie, setFavourite] = useState(false);
+
   const handleEditClick = (project: Project) => {
-//    Write your logic here
-  }
+    setSelectedProject(project);
+    setEditData({
+      title: project.title,
+      description: project.description || "",
+    });
+    setEditDialogOpen(true);
+  };
 
   const handleDeleteClick = async (project: Project) => {
-    //    Write your logic here
-  }
+    setSelectedProject(project);
+
+    setDeleteDialogOpen(true);
+  };
 
   const handleUpdateProject = async () => {
-   //    Write your logic here
-  }
+    if (!selectedProject || !onUpdateProject) return;
+
+    setIsLoading(true);
+
+    try {
+      await onUpdateProject(selectedProject.id, editData);
+      setEditDialogOpen(false);
+      toast.success("Project updated successfully");
+    } catch (error) {
+      toast.error("Failed to update project");
+      console.error("Error updating project:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleMarkasFavorite = async (project: Project) => {
-   //    Write your logic here
-  }
+    //    Write your logic here
+  };
 
   const handleDeleteProject = async () => {
-   //    Write your logic here
-  }
+    if (!selectedProject || !onDeleteProject) return;
+
+    setIsLoading(true);
+    try {
+      await onDeleteProject(selectedProject.id);
+      setDeleteDialogOpen(false);
+      setSelectedProject(null);
+      toast.success("Project deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete project");
+      console.error("Error deleting project:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDuplicateProject = async (project: Project) => {
-    //    Write your logic here
-  }
+    if (!onDuplicateProject) return;
+
+    setIsLoading(true);
+    try {
+      await onDuplicateProject(project.id);
+      toast.success("Project duplicated successfully");
+    } catch (error) {
+      toast.error("Failed to duplicate project");
+      console.error("Error duplicating project:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const copyProjectUrl = (projectId: string) => {
-    //    Write your logic here
-  }
+    const url = `${window.location.origin}/playground/${projectId}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Project url copied to clipboard");
+  };
 
   return (
     <>
@@ -114,18 +180,30 @@ export default function ProjectTable({
               <TableRow key={project.id}>
                 <TableCell className="font-medium">
                   <div className="flex flex-col">
-                    <Link href={`/playground/${project.id}`} className="hover:underline">
+                    <Link
+                      href={`/playground/${project.id}`}
+                      className="hover:underline"
+                    >
                       <span className="font-semibold">{project.title}</span>
                     </Link>
-                    <span className="text-sm text-gray-500 line-clamp-1">{project.description}</span>
+                    <span className="text-sm text-gray-500 line-clamp-1">
+                      {project.description}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="bg-[#E93F3F15] text-[#E93F3F] border-[#E93F3F]">
+                  <Badge
+                    variant="outline"
+                    className="bg-[#E93F3F15] text-[#E93F3F] border-[#E93F3F]"
+                  >
                     {project.template}
                   </Badge>
                 </TableCell>
-                <TableCell>{format(new Date(project.createdAt), "MMM d, yyyy")}</TableCell>
+                <TableCell>
+                  <span className="text-sm text-gray-500">
+                    {format(new Date(project.createdAt), "MMM dd, yyyy")}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full overflow-hidden">
@@ -150,30 +228,43 @@ export default function ProjectTable({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem asChild>
-                        {/* <MarkedToggleButton markedForRevision={project.Starmark[0]?.isMarked} id={project.id} /> */}
+                        <MarkedToggleButton markedForRevision={project.Starmark[0]?.isMarked} id={project.id} />
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/playground/${project.id}`} className="flex items-center">
+                        <Link
+                          href={`/playground/${project.id}`}
+                          className="flex items-center"
+                        >
                           <Eye className="h-4 w-4 mr-2" />
                           Open Project
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link href={`/playground/${project.id}`} target="_blank" className="flex items-center">
+                        <Link
+                          href={`/playground/${project.id}`}
+                          target="_blank"
+                          className="flex items-center"
+                        >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           Open in New Tab
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => handleEditClick(project)}>
+                      <DropdownMenuItem
+                        onClick={() => handleEditClick(project)}
+                      >
                         <Edit3 className="h-4 w-4 mr-2" />
                         Edit Project
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDuplicateProject(project)}>
+                      <DropdownMenuItem
+                        onClick={() => handleDuplicateProject(project)}
+                      >
                         <Copy className="h-4 w-4 mr-2" />
                         Duplicate
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => copyProjectUrl(project.id)}>
+                      <DropdownMenuItem
+                        onClick={() => copyProjectUrl(project.id)}
+                      >
                         <Download className="h-4 w-4 mr-2" />
                         Copy URL
                       </DropdownMenuItem>
@@ -200,7 +291,8 @@ export default function ProjectTable({
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
             <DialogDescription>
-              Make changes to your project details here. Click save when you're done.
+              Make changes to your project details here. Click save when you're
+              done.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -209,7 +301,9 @@ export default function ProjectTable({
               <Input
                 id="title"
                 value={editData.title}
-                onChange={(e) => setEditData((prev) => ({ ...prev, title: e.target.value }))}
+                onChange={(e) =>
+                  setEditData((prev) => ({ ...prev, title: e.target.value }))
+                }
                 placeholder="Enter project title"
               />
             </div>
@@ -218,17 +312,31 @@ export default function ProjectTable({
               <Textarea
                 id="description"
                 value={editData.description}
-                onChange={(e) => setEditData((prev) => ({ ...prev, description: e.target.value }))}
+                onChange={(e) =>
+                  setEditData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
                 placeholder="Enter project description"
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
-            <Button type="button" onClick={handleUpdateProject} disabled={isLoading || !editData.title.trim()}>
+            <Button
+              type="button"
+              onClick={handleUpdateProject}
+              disabled={isLoading || !editData.title.trim()}
+            >
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
@@ -241,8 +349,9 @@ export default function ProjectTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Project</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedProject?.title}"? This action cannot be undone. All files and
-              data associated with this project will be permanently removed.
+              Are you sure you want to delete "{selectedProject?.title}"? This
+              action cannot be undone. All files and data associated with this
+              project will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -258,7 +367,5 @@ export default function ProjectTable({
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
+  );
 }
-
-
