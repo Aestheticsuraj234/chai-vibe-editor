@@ -63,7 +63,7 @@ interface ProjectTableProps {
   ) => Promise<void>;
   onDeleteProject?: (id: string) => Promise<void>;
   onDuplicateProject?: (id: string) => Promise<void>;
-  onMarkasFavorite?: (id: string) => Promise<void>;
+  
 }
 
 interface EditProjectData {
@@ -76,7 +76,7 @@ export default function ProjectTable({
   onUpdateProject,
   onDeleteProject,
   onDuplicateProject,
-  onMarkasFavorite,
+
 }: ProjectTableProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -86,7 +86,7 @@ export default function ProjectTable({
     description: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [favoutrie, setFavourite] = useState(false);
+ 
 
   const handleEditClick = (project: Project) => {
     setSelectedProject(project);
